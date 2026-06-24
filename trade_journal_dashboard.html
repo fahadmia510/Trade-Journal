@@ -1,0 +1,369 @@
+
+<h2 class="sr-only">ট্রেড জার্নাল ড্যাশবোর্ড — XAUUSD, BTCUSDT এবং Forex ট্রেড ট্র্যাক করুন</h2>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.app { padding: 1rem 0; }
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 8px; }
+.topbar h1 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.topbar span { font-size: 12px; color: var(--color-text-secondary); }
+.tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 0; }
+.tab { font-size: 13px; padding: 6px 14px; cursor: pointer; color: var(--color-text-secondary); background: none; border: none; border-bottom: 2px solid transparent; font-family: var(--font-sans); }
+.tab.active { color: var(--color-text-primary); border-bottom: 2px solid var(--color-text-primary); font-weight: 500; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.metric .label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric .value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.metric .value.up { color: #1D9E75; }
+.metric .value.down { color: #E24B4A; }
+.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+.add-form { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.field label { display: block; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.field select, .field input { width: 100%; font-size: 13px; padding: 6px 10px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); }
+.btn-add { background: var(--color-text-primary); color: var(--color-background-primary); border: none; padding: 8px 18px; border-radius: var(--border-radius-md); font-size: 13px; cursor: pointer; font-family: var(--font-sans); font-weight: 500; }
+.btn-add:hover { opacity: 0.85; }
+.trade-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.trade-table th { text-align: left; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.trade-table td { padding: 9px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+.trade-table tr:last-child td { border-bottom: none; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+.badge.buy { background: #E1F5EE; color: #0F6E56; }
+.badge.sell { background: #FCEBEB; color: #A32D2D; }
+.badge.win { background: #EAF3DE; color: #3B6D11; }
+.badge.loss { background: #FCEBEB; color: #A32D2D; }
+.badge.open { background: #E6F1FB; color: #185FA5; }
+.pnl-pos { color: #1D9E75; font-weight: 500; }
+.pnl-neg { color: #E24B4A; font-weight: 500; }
+.del-btn { background: none; border: none; cursor: pointer; color: var(--color-text-secondary); font-size: 15px; padding: 2px 5px; }
+.del-btn:hover { color: #E24B4A; }
+.chart-wrap { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.empty { text-align: center; padding: 2rem; color: var(--color-text-secondary); font-size: 13px; }
+.signal-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 10px; display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.signal-pair { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.signal-detail { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+.signal-note { font-size: 12px; color: var(--color-text-secondary); max-width: 220px; line-height: 1.5; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.chart-legend { display: flex; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+.chart-legend span { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--color-text-secondary); }
+.chart-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+</style>
+
+<div class="app">
+  <div class="topbar">
+    <h1><i class="ti ti-chart-candle" aria-hidden="true" style="font-size:20px;vertical-align:-3px;margin-right:6px;"></i>Trade Journal</h1>
+    <span id="today-date"></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('journal')">ট্রেড জার্নাল</button>
+    <button class="tab" onclick="switchTab('signals')">সিগনাল ট্র্যাকার</button>
+    <button class="tab" onclick="switchTab('stats')">পরিসংখ্যান</button>
+  </div>
+
+  <div id="tab-journal" class="tab-content active">
+    <div class="metrics" id="metrics-bar"></div>
+
+    <div class="add-form">
+      <div class="section-title">নতুন ট্রেড যোগ করুন</div>
+      <div class="form-grid">
+        <div class="field"><label>পেয়ার</label>
+          <select id="f-pair">
+            <option>XAUUSD</option><option>BTCUSDT</option><option>EURUSD</option>
+            <option>GBPUSD</option><option>USDJPY</option><option>USDCHF</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>ধরন</label>
+          <select id="f-type"><option>BUY</option><option>SELL</option></select>
+        </div>
+        <div class="field"><label>Entry Price</label>
+          <input type="number" id="f-entry" placeholder="যেমন: 2350.50" step="0.01">
+        </div>
+        <div class="field"><label>Exit Price</label>
+          <input type="number" id="f-exit" placeholder="0 = এখনো চলছে" step="0.01">
+        </div>
+        <div class="field"><label>Lot Size</label>
+          <input type="number" id="f-lot" placeholder="0.01" value="0.01" step="0.01">
+        </div>
+        <div class="field"><label>Stop Loss</label>
+          <input type="number" id="f-sl" placeholder="SL Price" step="0.01">
+        </div>
+        <div class="field"><label>Take Profit</label>
+          <input type="number" id="f-tp" placeholder="TP Price" step="0.01">
+        </div>
+        <div class="field"><label>তারিখ</label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:12px"><label>নোট (Setup, কারণ)</label>
+        <input type="text" id="f-note" placeholder="যেমন: Order Block থেকে BUY, FVG fill..." style="width:100%">
+      </div>
+      <button class="btn-add" onclick="addTrade()"><i class="ti ti-plus" aria-hidden="true"></i> ট্রেড যোগ করুন</button>
+    </div>
+
+    <div class="section-title">সব ট্রেড</div>
+    <div style="overflow-x:auto;">
+      <table class="trade-table">
+        <thead>
+          <tr>
+            <th>পেয়ার</th><th>ধরন</th><th>Entry</th><th>Exit</th><th>Lot</th>
+            <th>SL</th><th>TP</th><th>P&L ($)</th><th>ফলাফল</th><th>তারিখ</th><th>নোট</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="trade-tbody"></tbody>
+      </table>
+      <div id="empty-msg" class="empty"><i class="ti ti-mood-empty" aria-hidden="true" style="font-size:28px;display:block;margin-bottom:8px;"></i>এখনো কোনো ট্রেড নেই। উপরে যোগ করুন।</div>
+    </div>
+  </div>
+
+  <div id="tab-signals" class="tab-content">
+    <div class="add-form">
+      <div class="section-title">নতুন সিগনাল সেভ করুন</div>
+      <div class="form-grid">
+        <div class="field"><label>পেয়ার</label>
+          <select id="s-pair"><option>XAUUSD</option><option>BTCUSDT</option><option>EURUSD</option><option>GBPUSD</option><option>Other</option></select>
+        </div>
+        <div class="field"><label>দিকনির্দেশ</label>
+          <select id="s-dir"><option>BUY</option><option>SELL</option></select>
+        </div>
+        <div class="field"><label>Entry Zone</label>
+          <input type="text" id="s-entry" placeholder="যেমন: 2340–2345">
+        </div>
+        <div class="field"><label>SL</label>
+          <input type="text" id="s-sl" placeholder="যেমন: 2330">
+        </div>
+        <div class="field"><label>TP1</label>
+          <input type="text" id="s-tp1" placeholder="যেমন: 2360">
+        </div>
+        <div class="field"><label>TP2</label>
+          <input type="text" id="s-tp2" placeholder="যেমন: 2380">
+        </div>
+        <div class="field"><label>Setup</label>
+          <input type="text" id="s-setup" placeholder="যেমন: Order Block, FVG, Liquidity">
+        </div>
+        <div class="field"><label>তারিখ/সময়</label>
+          <input type="datetime-local" id="s-date">
+        </div>
+      </div>
+      <button class="btn-add" onclick="addSignal()"><i class="ti ti-plus" aria-hidden="true"></i> সিগনাল যোগ করুন</button>
+    </div>
+
+    <div class="section-title">সেভ করা সিগনাল</div>
+    <div id="signals-list"><div class="empty"><i class="ti ti-radar" aria-hidden="true" style="font-size:28px;display:block;margin-bottom:8px;"></i>এখনো কোনো সিগনাল নেই।</div></div>
+  </div>
+
+  <div id="tab-stats" class="tab-content">
+    <div class="metrics" id="stats-metrics"></div>
+    <div class="chart-wrap">
+      <div class="section-title">পেয়ার ভিত্তিক P&L</div>
+      <div class="chart-legend" id="pair-legend"></div>
+      <div style="position:relative;width:100%;height:220px;">
+        <canvas id="pairChart" role="img" aria-label="পেয়ার ভিত্তিক মোট P&L বার চার্ট">কোনো ডেটা নেই।</canvas>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="section-title">দৈনিক P&L ট্রেন্ড</div>
+      <div style="position:relative;width:100%;height:220px;">
+        <canvas id="dailyChart" role="img" aria-label="দৈনিক P&L লাইন চার্ট">কোনো ডেটা নেই।</canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let trades = JSON.parse(localStorage.getItem('tj_trades') || '[]');
+let signals = JSON.parse(localStorage.getItem('tj_signals') || '[]');
+let pairChart = null, dailyChart = null;
+
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('bn-BD', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+document.getElementById('s-date').value = now.toISOString().slice(0,16);
+
+function save() {
+  localStorage.setItem('tj_trades', JSON.stringify(trades));
+  localStorage.setItem('tj_signals', JSON.stringify(signals));
+}
+
+function calcPnL(t) {
+  if (!t.exit || t.exit == 0) return null;
+  const diff = t.type === 'BUY' ? t.exit - t.entry : t.entry - t.exit;
+  return parseFloat((diff * t.lot * 100).toFixed(2));
+}
+
+function renderTrades() {
+  const tbody = document.getElementById('trade-tbody');
+  const empty = document.getElementById('empty-msg');
+  tbody.innerHTML = '';
+  if (trades.length === 0) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  [...trades].reverse().forEach((t, ri) => {
+    const i = trades.length - 1 - ri;
+    const pnl = calcPnL(t);
+    const isOpen = !t.exit || t.exit == 0;
+    const isWin = pnl !== null && pnl >= 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${t.pair}</strong></td>
+      <td><span class="badge ${t.type.toLowerCase()}">${t.type}</span></td>
+      <td>${t.entry}</td>
+      <td>${isOpen ? '—' : t.exit}</td>
+      <td>${t.lot}</td>
+      <td style="color:var(--color-text-secondary)">${t.sl || '—'}</td>
+      <td style="color:var(--color-text-secondary)">${t.tp || '—'}</td>
+      <td class="${isOpen ? '' : (isWin ? 'pnl-pos' : 'pnl-neg')}">${isOpen ? '⏳' : (pnl >= 0 ? '+' : '') + pnl}</td>
+      <td><span class="badge ${isOpen ? 'open' : (isWin ? 'win' : 'loss')}">${isOpen ? 'চলছে' : (isWin ? 'জয়' : 'ক্ষতি')}</span></td>
+      <td style="color:var(--color-text-secondary);font-size:12px">${t.date || '—'}</td>
+      <td style="font-size:12px;color:var(--color-text-secondary);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.note || ''}">${t.note || '—'}</td>
+      <td><button class="del-btn" onclick="deleteTrade(${i})" aria-label="মুছুন"><i class="ti ti-trash" aria-hidden="true"></i></button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  updateMetrics();
+}
+
+function updateMetrics() {
+  const closed = trades.filter(t => t.exit && t.exit != 0);
+  const wins = closed.filter(t => calcPnL(t) >= 0);
+  const totalPnL = closed.reduce((s, t) => s + (calcPnL(t) || 0), 0);
+  const wr = closed.length ? Math.round((wins.length / closed.length) * 100) : 0;
+  const open = trades.filter(t => !t.exit || t.exit == 0).length;
+
+  document.getElementById('metrics-bar').innerHTML = `
+    <div class="metric"><div class="label">মোট P&L ($)</div><div class="value ${totalPnL >= 0 ? 'up' : 'down'}">${totalPnL >= 0 ? '+' : ''}${totalPnL.toFixed(2)}</div></div>
+    <div class="metric"><div class="label">Win Rate</div><div class="value ${wr >= 50 ? 'up' : 'down'}">${wr}%</div></div>
+    <div class="metric"><div class="label">মোট ট্রেড</div><div class="value">${trades.length}</div></div>
+    <div class="metric"><div class="label">চলমান</div><div class="value">${open}</div></div>
+    <div class="metric"><div class="label">জয়/ক্ষতি</div><div class="value">${wins.length}/${closed.length - wins.length}</div></div>
+  `;
+}
+
+function addTrade() {
+  const pair = document.getElementById('f-pair').value;
+  const type = document.getElementById('f-type').value;
+  const entry = parseFloat(document.getElementById('f-entry').value);
+  const exit = parseFloat(document.getElementById('f-exit').value) || 0;
+  const lot = parseFloat(document.getElementById('f-lot').value) || 0.01;
+  const sl = document.getElementById('f-sl').value;
+  const tp = document.getElementById('f-tp').value;
+  const date = document.getElementById('f-date').value;
+  const note = document.getElementById('f-note').value;
+  if (!entry) { alert('Entry price দিন!'); return; }
+  trades.push({ pair, type, entry, exit, lot, sl, tp, date, note });
+  save(); renderTrades();
+  document.getElementById('f-entry').value = '';
+  document.getElementById('f-exit').value = '';
+  document.getElementById('f-note').value = '';
+}
+
+function deleteTrade(i) {
+  if (!confirm('এই ট্রেড মুছবেন?')) return;
+  trades.splice(i, 1); save(); renderTrades();
+}
+
+function renderSignals() {
+  const el = document.getElementById('signals-list');
+  if (signals.length === 0) {
+    el.innerHTML = '<div class="empty"><i class="ti ti-radar" aria-hidden="true" style="font-size:28px;display:block;margin-bottom:8px;"></i>এখনো কোনো সিগনাল নেই।</div>';
+    return;
+  }
+  el.innerHTML = [...signals].reverse().map((s, ri) => {
+    const i = signals.length - 1 - ri;
+    return `<div class="signal-card">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span class="signal-pair">${s.pair}</span>
+          <span class="badge ${s.dir.toLowerCase()}">${s.dir}</span>
+        </div>
+        <div class="signal-detail">Entry: <strong>${s.entry || '—'}</strong> &nbsp;|&nbsp; SL: <strong>${s.sl || '—'}</strong> &nbsp;|&nbsp; TP1: <strong>${s.tp1 || '—'}</strong> &nbsp;|&nbsp; TP2: <strong>${s.tp2 || '—'}</strong></div>
+        <div class="signal-detail" style="margin-top:4px;">Setup: ${s.setup || '—'} &nbsp;|&nbsp; ${s.date || ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <button class="del-btn" onclick="deleteSignal(${i})" aria-label="সিগনাল মুছুন"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addSignal() {
+  signals.push({
+    pair: document.getElementById('s-pair').value,
+    dir: document.getElementById('s-dir').value,
+    entry: document.getElementById('s-entry').value,
+    sl: document.getElementById('s-sl').value,
+    tp1: document.getElementById('s-tp1').value,
+    tp2: document.getElementById('s-tp2').value,
+    setup: document.getElementById('s-setup').value,
+    date: document.getElementById('s-date').value
+  });
+  save(); renderSignals();
+  ['s-entry','s-sl','s-tp1','s-tp2','s-setup'].forEach(id => document.getElementById(id).value = '');
+}
+
+function deleteSignal(i) {
+  if (!confirm('এই সিগনাল মুছবেন?')) return;
+  signals.splice(i, 1); save(); renderSignals();
+}
+
+function renderStats() {
+  const closed = trades.filter(t => t.exit && t.exit != 0);
+  const wins = closed.filter(t => calcPnL(t) >= 0);
+  const losses = closed.filter(t => calcPnL(t) < 0);
+  const totalPnL = closed.reduce((s, t) => s + (calcPnL(t) || 0), 0);
+  const avgWin = wins.length ? wins.reduce((s, t) => s + calcPnL(t), 0) / wins.length : 0;
+  const avgLoss = losses.length ? Math.abs(losses.reduce((s, t) => s + calcPnL(t), 0) / losses.length) : 0;
+  const rr = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : '—';
+
+  document.getElementById('stats-metrics').innerHTML = `
+    <div class="metric"><div class="label">মোট P&L</div><div class="value ${totalPnL >= 0 ? 'up' : 'down'}">${totalPnL >= 0 ? '+' : ''}${totalPnL.toFixed(2)}</div></div>
+    <div class="metric"><div class="label">গড় জয়</div><div class="value up">+${avgWin.toFixed(2)}</div></div>
+    <div class="metric"><div class="label">গড় ক্ষতি</div><div class="value down">-${avgLoss.toFixed(2)}</div></div>
+    <div class="metric"><div class="label">Risk:Reward</div><div class="value">${rr}</div></div>
+    <div class="metric"><div class="label">Win Rate</div><div class="value ${closed.length && wins.length/closed.length >= 0.5 ? 'up' : 'down'}">${closed.length ? Math.round(wins.length/closed.length*100) : 0}%</div></div>
+  `;
+
+  const pairMap = {};
+  closed.forEach(t => { pairMap[t.pair] = (pairMap[t.pair] || 0) + (calcPnL(t) || 0); });
+  const pairs = Object.keys(pairMap);
+  const pairVals = pairs.map(p => parseFloat(pairMap[p].toFixed(2)));
+  const pairColors = pairVals.map(v => v >= 0 ? '#1D9E75' : '#E24B4A');
+
+  document.getElementById('pair-legend').innerHTML = pairs.map((p, i) => `<span><i style="background:${pairColors[i]}"></i>${p}: ${pairVals[i] >= 0 ? '+' : ''}${pairVals[i]}</span>`).join('');
+
+  if (pairChart) pairChart.destroy();
+  if (pairs.length > 0) {
+    pairChart = new Chart(document.getElementById('pairChart'), {
+      type: 'bar',
+      data: { labels: pairs, datasets: [{ data: pairVals, backgroundColor: pairColors, borderRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#888780' }, grid: { color: 'rgba(136,135,128,0.15)' } }, x: { ticks: { color: '#888780' }, grid: { display: false } } } }
+    });
+  }
+
+  const dateMap = {};
+  closed.forEach(t => { if (t.date) dateMap[t.date] = (dateMap[t.date] || 0) + (calcPnL(t) || 0); });
+  const dates = Object.keys(dateMap).sort();
+  const dailyVals = dates.map(d => parseFloat(dateMap[d].toFixed(2)));
+
+  if (dailyChart) dailyChart.destroy();
+  if (dates.length > 0) {
+    dailyChart = new Chart(document.getElementById('dailyChart'), {
+      type: 'line',
+      data: { labels: dates, datasets: [{ data: dailyVals, borderColor: '#378ADD', backgroundColor: 'rgba(55,138,221,0.08)', fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#378ADD' }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#888780' }, grid: { color: 'rgba(136,135,128,0.15)' } }, x: { ticks: { color: '#888780', maxRotation: 30 }, grid: { display: false } } } }
+    });
+  }
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['journal','signals','stats'][i] === name));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'stats') renderStats();
+}
+
+renderTrades();
+renderSignals();
+</script>
